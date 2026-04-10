@@ -522,6 +522,29 @@ func (s *XiaohongshuService) UnfavoriteFeed(ctx context.Context, feedID, xsecTok
 	return &ActionResult{FeedID: feedID, Success: true, Message: "取消收藏成功或未收藏"}, nil
 }
 
+// ListCollectedNotes 获取当前登录用户的收藏列表
+func (s *XiaohongshuService) ListCollectedNotes(ctx context.Context) (*CollectedNotesResponse, error) {
+	b := newBrowser()
+	defer b.Close()
+
+	page := b.NewPage()
+	defer page.Close()
+
+	action := xiaohongshu.NewCollectAction(page)
+
+	result, err := action.GetCollectedNotes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CollectedNotesResponse{
+		Notes:   result.Notes,
+		HasMore: result.HasMore,
+		Cursor:  result.Cursor,
+		Count:   len(result.Notes),
+	}, nil
+}
+
 // ReplyCommentToFeed 回复指定评论
 func (s *XiaohongshuService) ReplyCommentToFeed(ctx context.Context, feedID, xsecToken, commentID, userID, content string) (*ReplyCommentResponse, error) {
 	b := newBrowser()

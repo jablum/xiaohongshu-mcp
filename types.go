@@ -103,6 +103,14 @@ type UserProfileRequest struct {
 	XsecToken string `json:"xsec_token" binding:"required"`
 }
 
+// CollectedNotesResponse 收藏列表响应
+type CollectedNotesResponse struct {
+	Notes   []xiaohongshu.CollectedNote `json:"notes"`
+	HasMore bool                        `json:"has_more"`
+	Cursor  string                      `json:"cursor"`
+	Count   int                         `json:"count"`
+}
+
 // ActionResult 通用动作响应（点赞/收藏等）
 type ActionResult struct {
 	FeedID  string `json:"feed_id"`

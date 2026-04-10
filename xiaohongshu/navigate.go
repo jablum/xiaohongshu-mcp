@@ -2,8 +2,10 @@ package xiaohongshu
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/sirupsen/logrus"
 )
 
 type NavigateAction struct {
@@ -27,19 +29,21 @@ func (n *NavigateAction) ToExplorePage(ctx context.Context) error {
 func (n *NavigateAction) ToProfilePage(ctx context.Context) error {
 	page := n.page.Context(ctx)
 
-	// First navigate to explore page
 	if err := n.ToExplorePage(ctx); err != nil {
 		return err
 	}
 
-	page.MustWaitStable()
-
-	// Find and click the "我" channel link in sidebar
+	// MustElement 自带等待机制，元素出现即返回，无需 MustWaitStable
+	// explore 页面有持续动态内容，MustWaitStable 会长时间阻塞
+	logrus.Info("[导航] 等待侧边栏「我」出现...")
 	profileLink := page.MustElement(`div.main-container li.user.side-bar-component a.link-wrapper span.channel`)
+	time.Sleep(1 * time.Second)
+
+	logrus.Info("[导航] 点击侧边栏「我」...")
 	profileLink.MustClick()
 
-	// Wait for navigation to complete
 	page.MustWaitLoad()
+	logrus.Info("[导航] 个人主页已加载")
 
 	return nil
 }

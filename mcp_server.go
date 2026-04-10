@@ -443,7 +443,23 @@ func registerTools(server *mcp.Server, appServer *AppServer) {
 		}),
 	)
 
-	logrus.Infof("Registered %d MCP tools", 13)
+	// 工具 14: 获取收藏列表
+	mcp.AddTool(server,
+		&mcp.Tool{
+			Name:        "list_collected_notes",
+			Description: "获取当前登录用户的收藏笔记列表，返回收藏的笔记信息（标题、封面、作者、互动数据等）。需要先登录。",
+			Annotations: &mcp.ToolAnnotations{
+				Title:        "List Collected Notes",
+				ReadOnlyHint: true,
+			},
+		},
+		withPanicRecovery("list_collected_notes", func(ctx context.Context, req *mcp.CallToolRequest, _ any) (*mcp.CallToolResult, any, error) {
+			result := appServer.handleListCollectedNotes(ctx)
+			return convertToMCPResult(result), nil, nil
+		}),
+	)
+
+	logrus.Infof("Registered %d MCP tools", 14)
 }
 
 // convertToMCPResult 将自定义的 MCPToolResult 转换为官方 SDK 的格式

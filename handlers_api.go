@@ -280,6 +280,19 @@ func healthHandler(c *gin.Context) {
 	}, "服务正常")
 }
 
+// listCollectedNotesHandler 获取登录用户的收藏列表
+func (s *AppServer) listCollectedNotesHandler(c *gin.Context) {
+	result, err := s.xiaohongshuService.ListCollectedNotes(c.Request.Context())
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "LIST_COLLECTED_NOTES_FAILED",
+			"获取收藏列表失败", err.Error())
+		return
+	}
+
+	c.Set("account", "ai-report")
+	respondSuccess(c, result, "获取收藏列表成功")
+}
+
 // myProfileHandler 我的信息
 func (s *AppServer) myProfileHandler(c *gin.Context) {
 	// 获取当前登录用户信息

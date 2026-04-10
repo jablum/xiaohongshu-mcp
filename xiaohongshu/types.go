@@ -168,3 +168,46 @@ type UserInteractions struct {
 	Name  string `json:"name"`  // 关注 粉丝 获赞与收藏
 	Count string `json:"count"` // 数量
 }
+
+// ================ 收藏列表相关结构体 ================
+
+// CollectedNotesData 收藏列表数据
+type CollectedNotesData struct {
+	HasMore bool            `json:"has_more"`
+	Notes   []CollectedNote `json:"notes"`
+	Cursor  string          `json:"cursor"`
+}
+
+// CollectedNote 收藏的笔记
+type CollectedNote struct {
+	NoteID       string                `json:"note_id"`
+	DisplayTitle string                `json:"display_title"`
+	Type         string                `json:"type"`
+	XsecToken    string                `json:"xsec_token"`
+	Cover        CollectedNoteCover    `json:"cover"`
+	User         CollectedNoteUser     `json:"user"`
+	InteractInfo CollectedInteractInfo `json:"interact_info"`
+}
+
+// CollectedNoteCover 收藏笔记的封面
+type CollectedNoteCover struct {
+	Width      int         `json:"width"`
+	Height     int         `json:"height"`
+	URLPre     string      `json:"url_pre"`
+	URLDefault string      `json:"url_default"`
+	InfoList   []ImageInfo `json:"info_list"`
+}
+
+// CollectedNoteUser 收藏笔记的作者
+type CollectedNoteUser struct {
+	UserID    string `json:"user_id"`
+	Nickname  string `json:"nickname"`
+	Avatar    string `json:"avatar"`
+	XsecToken string `json:"xsec_token"`
+}
+
+// CollectedInteractInfo 收藏笔记的互动信息
+type CollectedInteractInfo struct {
+	Liked      bool   `json:"liked"`
+	LikedCount string `json:"liked_count"`
+}
