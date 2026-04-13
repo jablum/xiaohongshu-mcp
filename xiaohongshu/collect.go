@@ -40,12 +40,17 @@ func (c *CollectAction) GetCollectedNotes(ctx context.Context) (*CollectedNotesD
 	}
 	time.Sleep(2 * time.Second)
 
-	currentURL := page.MustEval(`() => window.location.href`).String()
-	logrus.Infof("[收藏] 已进入个人主页: %s", currentURL)
+	urlResult, err := page.Eval(`() => window.location.href`)
+	if err != nil {
+		return nil, fmt.Errorf("获取当前页面URL失败: %w", err)
+	}
+	logrus.Infof("[收藏] 已进入个人主页: %s", urlResult.Value.String())
 
 	// 步骤2: 注入 JS 拦截器，在页面内捕获收藏 API 响应
 	logrus.Info("[收藏] 步骤2: 注入请求拦截器...")
-	c.injectResponseInterceptor(page)
+	if err := c.injectResponseInterceptor(page); err != nil {
+		return nil, err
+	}
 
 	// 步骤3: 点击收藏标签
 	logrus.Info("[收藏] 步骤3: 点击收藏标签...")
@@ -65,8 +70,8 @@ func (c *CollectAction) GetCollectedNotes(ctx context.Context) (*CollectedNotesD
 }
 
 // injectResponseInterceptor 注入 JS 代码，拦截 fetch/XHR 中收藏列表 API 的响应
-func (c *CollectAction) injectResponseInterceptor(page *rod.Page) {
-	page.MustEval(`() => {
+func (c *CollectAction) injectResponseInterceptor(page *rod.Page) error {
+	_, err := page.Eval(`() => {
 		window.__collectResponse = null;
 
 		// 拦截 fetch
@@ -98,15 +103,22 @@ func (c *CollectAction) injectResponseInterceptor(page *rod.Page) {
 			return origSend.apply(this, arguments);
 		};
 	}`)
+	if err != nil {
+		return fmt.Errorf("注入请求拦截器失败: %w", err)
+	}
 	logrus.Info("[收藏] 请求拦截器已注入")
+	return nil
 }
 
 // waitForCollectResponse 轮询读取页面中被拦截到的收藏 API 响应
 func (c *CollectAction) waitForCollectResponse(page *rod.Page, timeout time.Duration) (string, error) {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		result := page.MustEval(`() => window.__collectResponse || ""`).String()
-		if result != "" {
+		res, err := page.Eval(`() => window.__collectResponse || ""`)
+		if err != nil {
+			return "", fmt.Errorf("读取拦截响应失败: %w", err)
+		}
+		if result := res.Value.String(); result != "" {
 			return result, nil
 		}
 		time.Sleep(500 * time.Millisecond)
@@ -117,7 +129,7 @@ func (c *CollectAction) waitForCollectResponse(page *rod.Page, timeout time.Dura
 // clickCollectTab 点击用户主页的"收藏"标签
 func (c *CollectAction) clickCollectTab(page *rod.Page) error {
 	// 打印页面上 tab 信息用于排查
-	tabInfo := page.MustEval(`() => {
+	tabInfoRes, err := page.Eval(`() => {
 		const result = [];
 		const selectors = ['.user-tab .tab', '.tabs .tab-item', '.reds-tab-item', '[class*="tab"]'];
 		for (const selector of selectors) {
@@ -130,11 +142,14 @@ func (c *CollectAction) clickCollectTab(page *rod.Page) error {
 			}
 		}
 		return JSON.stringify(result);
-	}`).String()
-	logrus.Infof("[收藏] 页面 tab 元素: %s", tabInfo)
+	}`)
+	if err != nil {
+		return fmt.Errorf("获取页面 tab 元素失败: %w", err)
+	}
+	logrus.Infof("[收藏] 页面 tab 元素: %s", tabInfoRes.Value.String())
 
 	// 查找包含"收藏"文本的标签并点击
-	clicked := page.MustEval(`() => {
+	clickedRes, err := page.Eval(`() => {
 		const selectors = ['.user-tab .tab', '.tabs .tab-item', '.reds-tab-item', '[class*="tab"]'];
 		for (const selector of selectors) {
 			const tabs = document.querySelectorAll(selector);
@@ -147,9 +162,12 @@ func (c *CollectAction) clickCollectTab(page *rod.Page) error {
 			}
 		}
 		return false;
-	}`).Bool()
+	}`)
+	if err != nil {
+		return fmt.Errorf("执行点击收藏标签脚本失败: %w", err)
+	}
 
-	if !clicked {
+	if !clickedRes.Value.Bool() {
 		return fmt.Errorf("未找到收藏标签，请确认当前页面为个人主页")
 	}
 
