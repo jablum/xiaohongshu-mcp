@@ -419,7 +419,7 @@ docker compose stop
 **3. 自己构建镜像（可选）**
 
 ```bash
-# 在项目根目录运行
+# 在项目根目录运行 ，如果编译下载google-chrome-stable_current_amd64.deb失败，使用DockerfileChromeLocal进行构建
 docker build -t xpzouying/xiaohongshu-mcp .
 ```
 
