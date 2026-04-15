@@ -41,6 +41,7 @@ type PublishVideoArgs struct {
 // SearchFeedsArgs 搜索内容的参数
 type SearchFeedsArgs struct {
 	Keyword string       `json:"keyword" jsonschema:"搜索关键词"`
+	Count   int          `json:"count,omitempty" jsonschema:"返回条数,默认5条，最多20条"`
 	Filters FilterOption `json:"filters,omitempty" jsonschema:"筛选选项"`
 }
 

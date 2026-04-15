@@ -56,6 +56,7 @@ type FeedDetailRequest struct {
 
 type SearchFeedsRequest struct {
 	Keyword string                   `json:"keyword" binding:"required"`
+	Count   int                      `json:"count"`
 	Filters xiaohongshu.FilterOption `json:"filters,omitempty"`
 }
 

@@ -38,7 +38,7 @@ func (c *CollectAction) GetCollectedNotes(ctx context.Context) (*CollectedNotesD
 	if err := navigate.ToProfilePage(ctx); err != nil {
 		return nil, fmt.Errorf("导航到个人主页失败，请确认已登录: %w", err)
 	}
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	urlResult, err := page.Eval(`() => window.location.href`)
 	if err != nil {
@@ -128,26 +128,6 @@ func (c *CollectAction) waitForCollectResponse(page *rod.Page, timeout time.Dura
 
 // clickCollectTab 点击用户主页的"收藏"标签
 func (c *CollectAction) clickCollectTab(page *rod.Page) error {
-	// 打印页面上 tab 信息用于排查
-	tabInfoRes, err := page.Eval(`() => {
-		const result = [];
-		const selectors = ['.user-tab .tab', '.tabs .tab-item', '.reds-tab-item', '[class*="tab"]'];
-		for (const selector of selectors) {
-			const tabs = document.querySelectorAll(selector);
-			for (const tab of tabs) {
-				const text = tab.textContent.trim();
-				if (text.length > 0 && text.length < 20) {
-					result.push({selector: selector, text: text, className: tab.className});
-				}
-			}
-		}
-		return JSON.stringify(result);
-	}`)
-	if err != nil {
-		return fmt.Errorf("获取页面 tab 元素失败: %w", err)
-	}
-	logrus.Infof("[收藏] 页面 tab 元素: %s", tabInfoRes.Value.String())
-
 	// 查找包含"收藏"文本的标签并点击
 	clickedRes, err := page.Eval(`() => {
 		const selectors = ['.user-tab .tab', '.tabs .tab-item', '.reds-tab-item', '[class*="tab"]'];
@@ -172,7 +152,6 @@ func (c *CollectAction) clickCollectTab(page *rod.Page) error {
 	}
 
 	logrus.Info("[收藏] 已点击收藏标签，等待数据加载...")
-	time.Sleep(2 * time.Second)
 	return nil
 }
 

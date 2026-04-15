@@ -369,7 +369,13 @@ func (s *XiaohongshuService) ListFeeds(ctx context.Context) (*FeedsListResponse,
 	return response, nil
 }
 
-func (s *XiaohongshuService) SearchFeeds(ctx context.Context, keyword string, filters ...xiaohongshu.FilterOption) (*FeedsListResponse, error) {
+func (s *XiaohongshuService) SearchFeeds(ctx context.Context, count int, keyword string, filters ...xiaohongshu.FilterOption) (*FeedsListResponse, error) {
+	if count <= 0 {
+		count = 5
+	}
+	if count > 20 {
+		count = 20
+	}
 	b := newBrowser()
 	defer b.Close()
 
@@ -387,7 +393,11 @@ func (s *XiaohongshuService) SearchFeeds(ctx context.Context, keyword string, fi
 		Feeds: feeds,
 		Count: len(feeds),
 	}
-
+	// 小红书网页未提供条数控制，这里手动控制条数
+	if len(response.Feeds) > count {
+		response.Feeds = response.Feeds[0:count]
+		response.Count = count
+	}
 	return response, nil
 }
 
